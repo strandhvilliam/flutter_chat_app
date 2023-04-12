@@ -20,11 +20,13 @@ class _SignInScreenState extends State<SignInScreen> {
     final email = _emailController.text;
     final password = _passwordController.text;
 
-    try {
-      SupabaseService.signIn(email, password);
+    final user = await SupabaseService.signIn(email, password);
+
+    if (mounted && user != null) {
       context.showSnackBar(message: 'Successfully signed in');
-    } on Exception catch (error) {
-      context.showErrorSnackBar(message: error.toString());
+      context.go('/home');
+    } else {
+      context.showErrorSnackBar(message: 'Failed to sign in');
     }
   }
 

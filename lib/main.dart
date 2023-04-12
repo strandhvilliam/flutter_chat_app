@@ -15,8 +15,13 @@ Future<void> main() async {
 
   await dotenv.load(fileName: '.env');
 
+  print(dotenv.env['SUPABASE_URL']!);
+  print(dotenv.env['SUPABASE_ANON_KEY']!);
+
   await Supabase.initialize(
-      url: dotenv.env['SUPABASE_URL']!, anonKey: 'SUPABASE_ANON_KEY');
+      url: "https://ikdmcrvpseyziskpusit.supabase.co",
+      anonKey:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrZG1jcnZwc2V5emlza3B1c2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODExNTUwNzksImV4cCI6MTk5NjczMTA3OX0.6GjpSgAxGUMOehKXgmokANWwMbkkG_omSR_YithRe_o');
 
   runApp(const MyApp());
 }

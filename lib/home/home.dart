@@ -28,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
           selectedIndex: currentPageIndex,
           destinations: const <Widget>[
             NavigationDestination(
-              icon: Icon(Icons.chat),
+              icon: Icon(Icons.question_answer_rounded),
               label: 'Chat',
             ),
             NavigationDestination(

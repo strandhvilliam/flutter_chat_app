@@ -27,7 +27,7 @@ class ProfileScreen extends StatelessWidget {
                 SupabaseService.signIn('test@test.com', '123456');
               },
               child: const Text('Sign In'),
-            )
+            ),
           ],
         ),
       ),

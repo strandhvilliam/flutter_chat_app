@@ -22,10 +22,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final password = _passwordController.text;
     final username = _usernameController.text;
 
-    try {
-      final response = await SupabaseService.signUp(email, password);
-    } on Exception catch (error) {
-      context.showErrorSnackBar(message: error.toString());
+    final user = await SupabaseService.signUp(email, password, username);
+    if (mounted && user != null) {
+      context.showSnackBar(message: 'Successfully signed up');
+      context.go('/home');
+    } else {
+      context.showErrorSnackBar(message: 'Failed to sign up');
     }
   }
 
@@ -68,7 +70,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     return 'Please enter a valid username';
                   }
                   return null;
-                  // TODO: Check if username is already taken
                 },
               ),
               const SizedBox(height: 10),

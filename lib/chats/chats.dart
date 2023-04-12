@@ -45,21 +45,24 @@ class ChatsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chats'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () => print('Search pressed'),
-          ),
-        ],
-      ),
-      body: ListView.builder(
-        itemBuilder: (BuildContext context, int index) {
-          return ChatTile(chatRoom: placeHolderRooms[index]);
-        },
-        itemCount: placeHolderRooms.length,
-      ),
-    );
+        appBar: AppBar(
+          title: const Text('Chats'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () => print('Search pressed'),
+            ),
+          ],
+        ),
+        body: ListView.builder(
+          itemBuilder: (BuildContext context, int index) {
+            return ChatTile(chatRoom: placeHolderRooms[index]);
+          },
+          itemCount: placeHolderRooms.length,
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => print('New chat pressed'),
+          child: const Icon(Icons.question_answer_rounded),
+        ));
   }
 }
