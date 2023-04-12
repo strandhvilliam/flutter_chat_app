@@ -81,18 +81,41 @@ class SupabaseService {
     return List.empty();
   }
 
-  static Future<dynamic> signUp(String email, String password) async {
+  static Future<dynamic> signUp(
+      String email, String password, String username) async {
     final AuthResponse res =
         await client.auth.signUp(email: email, password: password);
 
-    return res.user;
+    if (res.user == null) {
+      return null;
+    }
+
+    final isTaken = await usernameIsTaken(username);
+
+    if (isTaken) {
+      throw Exception("Username is taken");
+    }
+
+    final profile = await client.from('user_profile').insert({
+      'id': res.user!.id,
+      'name': username,
+      'created_at': DateTime.now(),
+      'email': email,
+    }).select();
+
+    return profile;
+  }
+
+  static Future<bool> usernameIsTaken(String username) async {
+    final profile =
+        await client.from('user_profile').select().eq('name', username);
+
+    return profile.data.length > 0;
   }
 
   static Future<dynamic> signIn(String email, String password) async {
-    final res =
+    final AuthResponse res =
         await client.auth.signInWithPassword(email: email, password: password);
-
-    print(res.user!.id);
 
     return res.user;
   }
