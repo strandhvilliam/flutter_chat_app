@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class FormScreen extends StatefulWidget {
   const FormScreen({super.key});
@@ -14,7 +15,17 @@ class _FormScreenState extends State<FormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/chats'),
+        ),
         title: const Text('Form'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () => print('Search pressed'),
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,
@@ -32,18 +43,6 @@ class _FormScreenState extends State<FormScreen> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Room name cannot be empty';
-                    }
-                    return null;
-                  }),
-              TextFormField(
-                  decoration: const InputDecoration(
-                    filled: true,
-                    hintText: 'Enter a title...',
-                    labelText: 'Room Name',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter some text';
                     }
                     return null;
                   }),

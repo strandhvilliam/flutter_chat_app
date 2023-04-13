@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_chat_app/chats/chat_tile.dart';
 import 'package:flutter_chat_app/services/models.dart';
+import 'package:go_router/go_router.dart';
 
 final List<UserProfile> placeHolderUserProfiles = List.of([
   UserProfile(),
@@ -61,7 +62,7 @@ class ChatsScreen extends StatelessWidget {
           itemCount: placeHolderRooms.length,
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () => print('New chat pressed'),
+          onPressed: () => GoRouter.of(context).push('/new'),
           child: const Icon(Icons.question_answer_rounded),
         ));
   }

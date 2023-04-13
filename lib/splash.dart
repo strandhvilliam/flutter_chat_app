@@ -26,7 +26,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (session == null) {
       context.go('/sign-up');
     } else {
-      context.go('/home');
+      context.go('/chats');
     }
   }
 

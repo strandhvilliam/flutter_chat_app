@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/services/models.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 extension ShowSnackBar on BuildContext {
   void showSnackBar({
     required String message,
-    Color backgroundColor = Colors.white,
+    Color backgroundColor = Colors.blue,
   }) {
     ScaffoldMessenger.of(this).showSnackBar(
       SnackBar(
@@ -96,12 +97,22 @@ class SupabaseService {
       throw Exception("Username is taken");
     }
 
-    final profile = await client.from('user_profile').insert({
+    final UserProfile profile = await client.from('user_profile').insert({
       'id': res.user!.id,
       'name': username,
-      'created_at': DateTime.now(),
+      'created_at': DateTime.now().toIso8601String(),
       'email': email,
     }).select();
+
+    final List<String> values = [
+      profile.id,
+      profile.name,
+      profile.email,
+      profile.createdAt.toIso8601String()
+    ];
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('profile', values);
 
     return profile;
   }
@@ -110,23 +121,51 @@ class SupabaseService {
     final profile =
         await client.from('user_profile').select().eq('name', username);
 
-    return profile.data.length > 0;
+    return profile.length > 0;
   }
 
-  static Future<dynamic> signIn(String email, String password) async {
+  static Future<void> signIn(String email, String password) async {
     final AuthResponse res =
         await client.auth.signInWithPassword(email: email, password: password);
 
-    return res.user;
+    /* final profileData =
+        await client.from('user_profile').select().eq('id', res.user!.id); */
+
+    /* final UserProfile profile = UserProfile(
+      id: profileData[0]['id'].toString(),
+      name: profileData[0]['name'],
+      email: profileData[0]['email'],
+      createdAt: profileData[0]['created_at'],
+      image: profileData[0]['image'],
+    ); */
+
+    /* final List<String> values = [
+      profile.id,
+      profile.name,
+      profile.email,
+      profile.createdAt.toIso8601String(),
+      profile.image
+    ];
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('profile', values); */
+
+    /* print('///////////INSIDE SIGN IN//////////////');
+    return profile; */
   }
 
   static Future<void> signOut() async {
     await client.auth.signOut();
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('profile');
   }
 
   static Future<dynamic> getAuthUser() async {
     client.auth.onAuthStateChange.listen((data) {
-      // print(data);
+      print("authstateChange");
+      print('\n');
+      print('\n');
     });
 
     return client.auth.currentSession;

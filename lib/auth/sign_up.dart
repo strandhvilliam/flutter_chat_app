@@ -22,12 +22,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final password = _passwordController.text;
     final username = _usernameController.text;
 
-    final user = await SupabaseService.signUp(email, password, username);
-    if (mounted && user != null) {
-      context.showSnackBar(message: 'Successfully signed up');
-      context.go('/home');
-    } else {
-      context.showErrorSnackBar(message: 'Failed to sign up');
+    try {
+      final user = await SupabaseService.signUp(email, password, username);
+      if (mounted && user != null) {
+        context.go('/chats');
+        context.showSnackBar(message: 'Successfully signed up!');
+      }
+    } catch (e) {
+      if (mounted) {
+        context.showSnackBar(message: 'Successfully signed up!');
+      }
     }
   }
 

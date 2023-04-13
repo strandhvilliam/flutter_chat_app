@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/auth/sign_in.dart';
-import 'package:flutter_chat_app/home/home.dart';
+import 'package:flutter_chat_app/chats/chats.dart';
+import 'package:flutter_chat_app/form/form.dart';
 import 'package:flutter_chat_app/profile/profile.dart';
-import 'package:flutter_chat_app/routes.dart';
 import 'package:flutter_chat_app/services/supabase.dart';
 import 'package:flutter_chat_app/auth/sign_up.dart';
 import 'package:flutter_chat_app/splash.dart';
@@ -26,23 +26,37 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final _shellNavigatorKey = GlobalKey<NavigatorState>();
+
 final GoRouter _router = GoRouter(
+  navigatorKey: _rootNavigatorKey,
+  initialLocation: '/',
   routes: [
+    ShellRoute(
+        navigatorKey: _shellNavigatorKey,
+        builder: (context, state, child) {
+          return MainScaffold(
+            child: child,
+          );
+        },
+        routes: [
+          GoRoute(
+            path: '/chats',
+            pageBuilder: (context, state) => const MaterialPage(
+              child: ChatsScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/profile',
+            pageBuilder: (context, state) => const MaterialPage(
+              child: ProfileScreen(),
+            ),
+          ),
+        ]),
     GoRoute(
       path: '/',
       builder: (context, state) => const SplashScreen(),
-    ),
-    GoRoute(
-      path: '/profile',
-      builder: (context, state) => const ProfileScreen(),
-    ),
-    GoRoute(
-      path: '/home',
-      builder: (context, state) => const HomeScreen(),
-    ),
-    GoRoute(
-      path: '/profile',
-      builder: (context, state) => const ProfileScreen(),
     ),
     GoRoute(
       path: '/sign-up',
@@ -51,7 +65,13 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/sign-in',
       builder: (context, state) => const SignInScreen(),
-    )
+    ),
+    GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
+      path: '/new',
+      builder: (context, state) => const FormScreen(),
+    ),
+
     /* GoRoute(
       path: '/chat/:id',
       pageBuilder: (context, state) => ChatScreen(
@@ -70,6 +90,47 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       routerConfig: _router,
       title: 'Flutter Chat App',
+    );
+  }
+}
+
+class MainScaffold extends StatefulWidget {
+  const MainScaffold({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<MainScaffold> createState() => _MainScaffoldState();
+}
+
+class _MainScaffoldState extends State<MainScaffold> {
+  int _selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: widget.child,
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
+            label: 'Chats',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          _selectedIndex = index;
+          if (index == 0) {
+            context.go('/chats');
+          } else if (index == 1) {
+            context.go('/profile');
+          }
+        },
+      ),
     );
   }
 }
