@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/services/supabase.dart';
+import 'package:flutter_chat_app/shared/extensions.dart';
 import 'package:go_router/go_router.dart';
 
 import 'auth_input.dart';
@@ -29,8 +30,7 @@ class _SignInScreenState extends State<SignInScreen> {
         context.showErrorSnackBar(message: 'Failed to sign in!');
       }
     } catch (e) {
-      context.showErrorSnackBar(message: e.toString());
-      //TODO: fix better error messages
+      context.showErrorSnackBar(message: 'Failed to sign in!');
     }
   }
 

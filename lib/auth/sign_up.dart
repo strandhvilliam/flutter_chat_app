@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/services/supabase.dart';
+import 'package:flutter_chat_app/shared/extensions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'auth_input.dart';
 import 'package:go_router/go_router.dart';
@@ -23,15 +24,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final username = _usernameController.text;
 
     try {
-      final user = await SupabaseService.signUp(email, password, username);
-      if (mounted && user != null) {
+      await SupabaseService.signUp(email, password, username);
+      if (mounted) {
         context.go('/chats');
         context.showSnackBar(message: 'Successfully signed up!');
+      } else {
+        context.showErrorSnackBar(message: 'Failed to sign up!');
       }
     } catch (e) {
-      if (mounted) {
-        context.showSnackBar(message: 'Successfully signed up!');
-      }
+      context.showErrorSnackBar(message: 'Failed to sign up!');
     }
   }
 
@@ -71,7 +72,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 label: 'Username',
                 validator: (String? value) {
                   if (value!.isEmpty) {
-                    return 'Please enter a valid username';
+                    return 'Username can not be empty';
+                  }
+                  if (value!.length < 4) {
+                    return 'Username must be at least 4 characters long';
                   }
                   return null;
                 },

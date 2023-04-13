@@ -124,10 +124,13 @@ class _MainScaffoldState extends State<MainScaffold> {
         currentIndex: _selectedIndex,
         onTap: (index) {
           _selectedIndex = index;
-          if (index == 0) {
-            context.go('/chats');
-          } else if (index == 1) {
-            context.go('/profile');
+          switch (index) {
+            case 0:
+              context.go('/chats');
+              break;
+            case 1:
+              context.go('/profile');
+              break;
           }
         },
       ),

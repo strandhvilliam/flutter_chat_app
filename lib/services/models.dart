@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class UserProfile {
   final String id;
   final String name;
@@ -17,6 +19,20 @@ class UserProfile {
     this.rooms,
     this.friends,
   }) : createdAt = createdAt ?? DateTime.now();
+
+  factory UserProfile.fromJson(String json) {
+    final Map<String, dynamic> data = jsonDecode(json);
+    return UserProfile(
+      id: data['id'],
+      name: data['name'],
+      email: data['email'],
+      image: data['image'] ??
+          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+      createdAt: DateTime.parse(data['created_at']),
+      /* rooms: data['rooms'],
+      friends: data['friends'], */
+    );
+  }
 }
 
 class ChatRoom {

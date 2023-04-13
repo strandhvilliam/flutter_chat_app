@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/services/models.dart';
 import 'package:flutter_chat_app/services/supabase.dart';
@@ -55,30 +57,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _getProfileData();
   }
 
-  Future<void> _checkAuth() async {
-    await Future.delayed(const Duration(seconds: 1));
-    if (_authChecked || !mounted) return;
-
-    _authChecked = true;
-    final session = SupabaseService.client.auth.currentSession;
-    if (session == null) {
-      context.go('/sign-in');
-    }
-  }
-
   _getProfileData() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final List<String>? profileData = prefs.getStringList('profile');
-    if (profileData != null) {
+
+    if (prefs.containsKey('profile')) {
       setState(() {
-        _profileData = UserProfile(
-          id: profileData[0],
-          name: profileData[1],
-          email: profileData[2],
-          createdAt: DateTime.parse(profileData[3]),
-          image: profileData[4],
-        );
+        _profileData = UserProfile.fromJson(prefs.getString('profile')!);
       });
+
+      print(_profileData);
     }
   }
 

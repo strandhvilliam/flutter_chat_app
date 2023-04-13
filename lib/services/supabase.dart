@@ -1,157 +1,74 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/services/models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-extension ShowSnackBar on BuildContext {
-  void showSnackBar({
-    required String message,
-    Color backgroundColor = Colors.blue,
-  }) {
-    ScaffoldMessenger.of(this).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: backgroundColor,
-      ),
-    );
-  }
-
-  void showErrorSnackBar({required String message}) {
-    showSnackBar(message: message, backgroundColor: Colors.red);
-  }
-}
-
 class SupabaseService {
   static final client = Supabase.instance.client;
 
-  static Future<List<ChatRoom>> fetchRooms() async {
-    final roomsRes = await client.from('chat_room').select() as List;
-
-    final membersRes = await client.from('members').select() as List;
-
-    final usersRes = await client.from('user_profile').select() as List;
-
-    final users = usersRes.map((e) {
-      return UserProfile(
-        id: e['id'].toString(),
-        name: e['name'],
-        createdAt: e['created_at'],
-      );
-    }).toList();
-
-    final rooms = roomsRes.map((e) {
-      return ChatRoom(
-        id: e['id'].toString(),
-        name: e['name'],
-        createdAt: e['created_at'],
-        userProfiles:
-            users.where((element) => element.id == e['id'].toString()).toList(),
-      );
-    }).toList();
-
-    /*
-
-  1. Get rooms that the user is a member of
-  2. Get members of those rooms
-  3. Get user profiles of those members
-  4. Map user profiles to members
-  5. Map members to rooms
-  6. Return rooms
-
-  */
-
-    /*
-  1. Get rooms
-  2. Get members
-  3. Get users
-  4. Map users to members
-  5. Map members to rooms
-  6. Return rooms
-  */
-
-    // print(membersRes);
-
-    /* List<ChatRoom> rooms = roomsRes.map((e) {
-    return ChatRoom(
-      id: e['id'].toString(),
-      name: e['name'],
-      createdAt: e['created_at'],
-    );
-  }).toList(); */
-
-    return List.empty();
-  }
-
-  static Future<dynamic> signUp(
+  static Future<void> signUp(
       String email, String password, String username) async {
+    // Create authenticated user
     final AuthResponse res =
         await client.auth.signUp(email: email, password: password);
 
     if (res.user == null) {
-      return null;
+      throw Exception("Unable to create user");
     }
-
-    final isTaken = await usernameIsTaken(username);
-
-    if (isTaken) {
-      throw Exception("Username is taken");
-    }
-
-    final UserProfile profile = await client.from('user_profile').insert({
+    // TODO: Check if username is taken
+    // Insert user profile in database
+    await client.from('user_profile').insert({
       'id': res.user!.id,
       'name': username,
-      'created_at': DateTime.now().toIso8601String(),
+      'created_at': res.user!.createdAt,
       'email': email,
-    }).select();
+    });
 
-    final List<String> values = [
-      profile.id,
-      profile.name,
-      profile.email,
-      profile.createdAt.toIso8601String()
-    ];
+    final profileData = {
+      'id': res.user!.id,
+      'name': username,
+      'created_at': res.user!.createdAt,
+      'email': email,
+      'image': null,
+    };
+
+    final jsonText = jsonEncode(profileData);
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('profile', values);
-
-    return profile;
-  }
-
-  static Future<bool> usernameIsTaken(String username) async {
-    final profile =
-        await client.from('user_profile').select().eq('name', username);
-
-    return profile.length > 0;
+    await prefs.setString('profile', jsonText);
   }
 
   static Future<void> signIn(String email, String password) async {
     final AuthResponse res =
         await client.auth.signInWithPassword(email: email, password: password);
 
-    /* final profileData =
-        await client.from('user_profile').select().eq('id', res.user!.id); */
+    if (res.user == null) {
+      throw Exception("Unable to sign in");
+    }
 
-    /* final UserProfile profile = UserProfile(
-      id: profileData[0]['id'].toString(),
-      name: profileData[0]['name'],
-      email: profileData[0]['email'],
-      createdAt: profileData[0]['created_at'],
-      image: profileData[0]['image'],
-    ); */
+    final data =
+        await client.from('user_profile').select().eq('id', res.user!.id);
 
-    /* final List<String> values = [
-      profile.id,
-      profile.name,
-      profile.email,
-      profile.createdAt.toIso8601String(),
-      profile.image
-    ];
+    /* print('PROFILE: ID: ${data[0]['id']}');
+    print('PROFILE: NAME: ${data[0]['name']}');
+    print('PROFILE: CREATED_AT: ${data[0]['created_at']}');
+    print('PROFILE: EMAIL: ${data[0]['email']}');
+    print('PROFILE: IMAGE: ${data[0]['image']}'); */
+
+    final profileData = {
+      'id': data[0]['id'],
+      'name': data[0]['name'],
+      'created_at': data[0]['created_at'],
+      'email': data[0]['email'],
+      'image': data[0]['image'],
+    };
+
+    final jsonText = jsonEncode(profileData);
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('profile', values); */
-
-    /* print('///////////INSIDE SIGN IN//////////////');
-    return profile; */
+    await prefs.setString('profile', jsonText);
   }
 
   static Future<void> signOut() async {
@@ -169,5 +86,12 @@ class SupabaseService {
     });
 
     return client.auth.currentSession;
+  }
+
+  static Future<bool> _usernameIsTaken(String username) async {
+    final profile =
+        await client.from('user_profile').select().eq('name', username);
+
+    return profile.length > 0;
   }
 }
