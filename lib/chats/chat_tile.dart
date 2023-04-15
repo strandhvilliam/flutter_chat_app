@@ -8,11 +8,11 @@ class ChatTile extends StatelessWidget {
 
   const ChatTile({super.key, required this.chatRoom});
 
-  List<UserProfile> getVisibleProfiles(List<UserProfile> userProfiles) {
-    if (userProfiles.length > 3) {
-      return userProfiles.sublist(0, 3);
+  List<UserProfile> getVisibleProfiles(List<UserProfile> members) {
+    if (members.length > 3) {
+      return members.sublist(0, 3);
     } else {
-      return userProfiles;
+      return members;
     }
   }
 
@@ -59,9 +59,9 @@ class ChatTile extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: Flex(
                         direction: Axis.horizontal,
-                        children: chatRoom.userProfiles != null &&
-                                chatRoom.userProfiles!.isNotEmpty
-                            ? getVisibleProfiles(chatRoom.userProfiles!)
+                        children: chatRoom.members != null &&
+                                chatRoom.members!.isNotEmpty
+                            ? getVisibleProfiles(chatRoom.members!)
                                 .map((UserProfile profile) {
                                 return Container(
                                   margin:
@@ -79,10 +79,10 @@ class ChatTile extends StatelessWidget {
                   SizedBox(
                     width: 40,
                     child: Text(
-                      chatRoom.userProfiles != null &&
-                              chatRoom.userProfiles!.isNotEmpty &&
-                              chatRoom.userProfiles!.length > 3
-                          ? '+${chatRoom.userProfiles!.sublist(3, chatRoom.userProfiles!.length).length}'
+                      chatRoom.members != null &&
+                              chatRoom.members!.isNotEmpty &&
+                              chatRoom.members!.length > 3
+                          ? '+${chatRoom.members!.sublist(3, chatRoom.members!.length).length}'
                           : '',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,

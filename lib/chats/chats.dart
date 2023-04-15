@@ -4,7 +4,9 @@ import 'package:flutter_chat_app/chats/chat_tile.dart';
 import 'package:flutter_chat_app/services/models.dart';
 import 'package:go_router/go_router.dart';
 
-final List<UserProfile> placeHolderUserProfiles = List.of([
+import 'package:flutter_chat_app/services/supabase.dart' as supabase;
+
+final List<UserProfile> placeHolderMembers = List.of([
   UserProfile(),
   UserProfile(),
   UserProfile(),
@@ -16,26 +18,26 @@ final List<UserProfile> placeHolderUserProfiles = List.of([
   UserProfile(),
 ]);
 
-final List<UserProfile> placeHolderUserProfiles1 = List.of([
+final List<UserProfile> placeHolderMembers1 = List.of([
   UserProfile(),
   UserProfile(),
 ]);
 
 final List<ChatRoom> placeHolderRooms = List.of([
   ChatRoom(
-    userProfiles: placeHolderUserProfiles,
+    members: placeHolderMembers,
     name: 'Room 1',
   ),
   ChatRoom(
-    userProfiles: placeHolderUserProfiles,
+    members: placeHolderMembers,
     name: 'Room 2',
   ),
   ChatRoom(
-    userProfiles: placeHolderUserProfiles1,
+    members: placeHolderMembers1,
     name: 'Room 3',
   ),
   ChatRoom(
-    userProfiles: placeHolderUserProfiles1,
+    members: placeHolderMembers1,
     name: 'Room 4',
   ),
 ]);
@@ -49,6 +51,7 @@ class ChatsScreen extends StatefulWidget {
 
 class _ChatsScreenState extends State<ChatsScreen> {
   final _searchInputController = TextEditingController();
+  late Future<List<ChatRoom>> _chatRooms;
 
   String _searchString = '';
   bool _showSearch = false;
@@ -111,7 +114,27 @@ class _ChatsScreenState extends State<ChatsScreen> {
   @override
   void initState() {
     super.initState();
+    _chatRooms = supabase.getChatRooms();
     _searchInputController.addListener(_updateSearch);
+  }
+
+  FutureBuilder<List<ChatRoom>> _chatRoomList() {
+    return FutureBuilder<List<ChatRoom>>(
+      future: _chatRooms,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return ListView.builder(
+            itemBuilder: (BuildContext context, int index) {
+              return ChatTile(chatRoom: snapshot.data![index]);
+            },
+            itemCount: snapshot.data!.length,
+          );
+        } else if (snapshot.hasError) {
+          return const Text('Error');
+        }
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
   }
 
   @override
@@ -145,7 +168,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   ),
           ],
         ),
-        body: !_showSearch ? _defaultList() : _searchList(),
+        body: !_showSearch ? _chatRoomList() : _searchList(),
         floatingActionButton: FloatingActionButton(
           onPressed: () => GoRouter.of(context).push('/new'),
           child: const Icon(Icons.question_answer_rounded),

@@ -22,7 +22,7 @@ class _SignInScreenState extends State<SignInScreen> {
     final password = _passwordController.text;
 
     try {
-      await SupabaseService.signIn(email, password);
+      await signIn(email, password);
       if (mounted) {
         context.go('/chats');
         context.showSnackBar(message: 'Successfully signed in!');

@@ -6,7 +6,6 @@ class UserProfile {
   final String email;
   final String image;
   final DateTime createdAt;
-  final List<ChatRoom>? rooms;
   final List<UserProfile>? friends;
 
   UserProfile({
@@ -16,7 +15,6 @@ class UserProfile {
     this.image =
         'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
     DateTime? createdAt,
-    this.rooms,
     this.friends,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -33,20 +31,31 @@ class UserProfile {
       friends: data['friends'], */
     );
   }
+
+  @override
+  String toString() {
+    // TODO: implement toString
+    return 'id: $id, name: $name, email: $email, image: $image, createdAt: $createdAt';
+  }
 }
 
 class ChatRoom {
   final String id;
   final String name;
   final DateTime createdAt;
-  final List<UserProfile>? userProfiles;
+  final List<UserProfile>? members;
 
   ChatRoom({
     this.id = 'id',
     this.name = 'Room',
     DateTime? createdAt,
-    this.userProfiles,
+    this.members,
   }) : createdAt = createdAt ?? DateTime.now();
+
+  @override
+  String toString() {
+    return 'id: $id, name: $name, createdAt: $createdAt, members: $members';
+  }
 }
 
 class Message {

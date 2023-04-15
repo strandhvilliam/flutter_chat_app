@@ -5,93 +5,121 @@ import 'package:flutter_chat_app/services/models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class SupabaseService {
-  static final client = Supabase.instance.client;
+final client = Supabase.instance.client;
 
-  static Future<void> signUp(
-      String email, String password, String username) async {
-    // Create authenticated user
-    final AuthResponse res =
-        await client.auth.signUp(email: email, password: password);
+Future<void> signUp(String email, String password, String username) async {
+  // Create authenticated user
+  final AuthResponse res =
+      await client.auth.signUp(email: email, password: password);
 
-    if (res.user == null) {
-      throw Exception("Unable to create user");
-    }
-    // TODO: Check if username is taken
-    // Insert user profile in database
-    await client.from('user_profile').insert({
-      'id': res.user!.id,
-      'name': username,
-      'created_at': res.user!.createdAt,
-      'email': email,
-    });
+  if (res.user == null) {
+    throw Exception("Unable to create user");
+  }
+  // TODO: Check if username is taken
+  // Insert user profile in database
+  await client.from('user_profile').insert({
+    'id': res.user!.id,
+    'name': username,
+    'created_at': res.user!.createdAt,
+    'email': email,
+  });
 
-    final profileData = {
-      'id': res.user!.id,
-      'name': username,
-      'created_at': res.user!.createdAt,
-      'email': email,
-      'image': null,
-    };
+  final profileData = {
+    'id': res.user!.id,
+    'name': username,
+    'created_at': res.user!.createdAt,
+    'email': email,
+    'image': null,
+  };
 
-    final jsonText = jsonEncode(profileData);
+  final jsonText = jsonEncode(profileData);
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('profile', jsonText);
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString('profile', jsonText);
+}
+
+Future<void> signIn(String email, String password) async {
+  final AuthResponse res =
+      await client.auth.signInWithPassword(email: email, password: password);
+
+  if (res.user == null) {
+    throw Exception("Unable to sign in");
   }
 
-  static Future<void> signIn(String email, String password) async {
-    final AuthResponse res =
-        await client.auth.signInWithPassword(email: email, password: password);
+  final data =
+      await client.from('user_profile').select().eq('id', res.user!.id);
 
-    if (res.user == null) {
-      throw Exception("Unable to sign in");
-    }
+  final profileData = {
+    'id': data[0]['id'],
+    'name': data[0]['name'],
+    'created_at': data[0]['created_at'],
+    'email': data[0]['email'],
+    'image': data[0]['image'],
+  };
 
-    final data =
-        await client.from('user_profile').select().eq('id', res.user!.id);
+  final jsonText = jsonEncode(profileData);
 
-    /* print('PROFILE: ID: ${data[0]['id']}');
-    print('PROFILE: NAME: ${data[0]['name']}');
-    print('PROFILE: CREATED_AT: ${data[0]['created_at']}');
-    print('PROFILE: EMAIL: ${data[0]['email']}');
-    print('PROFILE: IMAGE: ${data[0]['image']}'); */
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString('profile', jsonText);
+}
 
-    final profileData = {
-      'id': data[0]['id'],
-      'name': data[0]['name'],
-      'created_at': data[0]['created_at'],
-      'email': data[0]['email'],
-      'image': data[0]['image'],
-    };
+Future<void> signOut() async {
+  await client.auth.signOut();
 
-    final jsonText = jsonEncode(profileData);
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.remove('profile');
+}
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('profile', jsonText);
-  }
+Future<List<ChatRoom>> getChatRooms() async {
+  final currentUserId = client.auth.currentUser!.id;
 
-  static Future<void> signOut() async {
-    await client.auth.signOut();
+  final List<dynamic> roomIdsRef = await client
+      .from('member')
+      .select('room_id')
+      .eq('user_id', currentUserId);
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('profile');
-  }
+  final List<String> roomIds = roomIdsRef.map((data) {
+    return data['room_id'] as String;
+  }).toList();
 
-  static Future<dynamic> getAuthUser() async {
-    client.auth.onAuthStateChange.listen((data) {
-      print("authstateChange");
-      print('\n');
-      print('\n');
-    });
+  final List<dynamic> roomsRef =
+      await client.from('chat_room').select().in_('id', roomIds);
 
-    return client.auth.currentSession;
-  }
+  final List<dynamic> roomMembersRef =
+      await client.from('member').select().in_('room_id', roomIds);
 
-  static Future<bool> _usernameIsTaken(String username) async {
-    final profile =
-        await client.from('user_profile').select().eq('name', username);
+  final List<String> userIds = roomMembersRef.map((data) {
+    return data['user_id'] as String;
+  }).toList();
 
-    return profile.length > 0;
-  }
+  final List<dynamic> usersRef =
+      await client.from('user_profile').select().in_('id', userIds);
+
+  final List<UserProfile> users = usersRef.map((data) {
+    return UserProfile(
+      id: data['id'] as String,
+      name: data['name'] as String,
+      createdAt: DateTime.parse(data['created_at'] as String),
+      email: data['email'] as String,
+      image: data['image'] as String? ??
+          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+    );
+  }).toList();
+
+  final List<ChatRoom> chatRooms = roomsRef.map((data) {
+    return ChatRoom(
+      id: data['id'],
+      name: data['name'],
+      createdAt: DateTime.parse(data['created_at']),
+      members: users.where((user) {
+        return roomMembersRef.any((member) {
+          return member['room_id'] == data['id'] as String &&
+              member['user_id'] as String == user.id;
+        });
+      }).toList(),
+    );
+  }).toList();
+
+  print("in getChatRooms:");
+  return chatRooms;
 }

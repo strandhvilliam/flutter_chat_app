@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/services/models.dart';
-import 'package:flutter_chat_app/services/supabase.dart';
+import 'package:flutter_chat_app/services/supabase.dart' as supabase;
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -107,7 +107,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 20),
               OutlinedButton(
                 onPressed: () => {
-                  SupabaseService.signOut(),
+                  supabase.signOut(),
                   context.go('/sign-in'),
                 },
                 style: ButtonStyle(
