@@ -9,7 +9,29 @@ final _client = Supabase.instance.client;
 
 Session? getSession() => _client.auth.currentSession;
 
-User? getUser() => _client.auth.currentUser;
+User? getCurrentUser() => _client.auth.currentUser;
+
+Future<UserProfile> getProfile(String userId) async {
+  final profile = await _client.from('user_profile').select().eq('id', userId);
+
+  if (profile.isEmpty) {
+    throw Exception("Unable to get profile");
+  }
+
+  final List<UserProfile> friends = await getFriendsByUser(userId);
+
+  final result = UserProfile(
+    id: profile[0]['id'],
+    name: profile[0]['name'],
+    email: profile[0]['email'],
+    image: profile[0]['image'] ??
+        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+    createdAt: DateTime.parse(profile[0]['created_at']),
+    friends: friends,
+  );
+
+  return result;
+}
 
 Future<void> signUp(String email, String password, String username) async {
   // Create authenticated user
@@ -53,12 +75,15 @@ Future<void> signIn(String email, String password) async {
   final data =
       await _client.from('user_profile').select().eq('id', res.user!.id);
 
+  final friends = await getFriendsByUser(res.user!.id);
+
   final profileData = {
     'id': data[0]['id'],
     'name': data[0]['name'],
     'created_at': data[0]['created_at'],
     'email': data[0]['email'],
     'image': data[0]['image'],
+    'friends': friends,
   };
 
   final jsonText = jsonEncode(profileData);
@@ -75,7 +100,7 @@ Future<void> signOut() async {
 }
 
 Future<List<ChatRoom>> getChatRooms() async {
-  final currentUserId = _client.auth.currentUser!.id;
+  final currentUserId = getCurrentUser()!.id;
 
   final List<dynamic> roomIdsRef = await _client
       .from('member')
@@ -160,12 +185,12 @@ Future<void> createChatRoom(String name, List<UserProfile> members) async {
   await _client.from('member').insert(membersData);
 }
 
-Future<List<ProfileSearch>> getSearchProfiles() async {
+Future<List<UserProfile>> getSearchProfiles() async {
   final List<dynamic> usersRef =
       await _client.from('user_profile').select('id, name, image');
 
-  final List<ProfileSearch> users = usersRef.map((data) {
-    return ProfileSearch(
+  final List<UserProfile> users = usersRef.map((data) {
+    return UserProfile(
       id: data['id'] as String,
       name: data['name'] as String,
       image: data['image'] as String? ??
@@ -186,4 +211,59 @@ Future<void> sendFriendRequest(String userId) async {
   } catch (error) {
     throw Exception(error);
   }
+}
+
+Future<List<UserProfile>> getFriendsByUser(String userId) async {
+  final friendRequestRef = await _client
+      .from('friend')
+      .select('requester_id')
+      .eq('reciever_id', userId);
+
+  final friendReqIds = friendRequestRef.map((data) {
+    return data['requester_id'] as String;
+  }).toList();
+
+  final friendRequestUsersRef = await _client
+      .from('user_profile')
+      .select('id, name, image')
+      .in_('id', friendReqIds);
+
+  final friendRequestUsers = friendRequestUsersRef.map((data) {
+    return UserProfile(
+      id: data['id'] as String,
+      name: data['name'] as String,
+      image: data['image'] as String? ??
+          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+    );
+  }).toList();
+
+  final friendRecieverRef = await _client
+      .from('friend')
+      .select('reciever_id')
+      .eq('requester_id', userId);
+
+  final friendRecieverIds = friendRecieverRef.map((data) {
+    return data['reciever_id'] as String;
+  }).toList();
+
+  final friendRecieverUsersRef = await _client
+      .from('user_profile')
+      .select('id, name, image')
+      .in_('id', friendRecieverIds);
+
+  final friendRecieverUsers = friendRecieverUsersRef.map((data) {
+    return UserProfile(
+      id: data['id'] as String,
+      name: data['name'] as String,
+      image: data['image'] as String? ??
+          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+    );
+  }).toList();
+
+  final List<UserProfile> friends = [
+    ...friendRequestUsers,
+    ...friendRecieverUsers,
+  ];
+
+  return friends;
 }

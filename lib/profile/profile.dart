@@ -96,7 +96,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 40),
               ElevatedButton(
-                onPressed: () => {},
+                onPressed: () async {
+                  final String userId = supabase.getCurrentUser()!.id;
+                  final UserProfile profile = await supabase.getProfile(userId);
+                },
                 style: ButtonStyle(
                   minimumSize: MaterialStateProperty.all(
                     const Size(200, 50),
