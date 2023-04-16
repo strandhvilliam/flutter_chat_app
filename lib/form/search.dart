@@ -13,7 +13,7 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   final _formKey = GlobalKey<FormState>();
   final _inputController = TextEditingController();
-  late Future<List<ProfileSearch>> _profiles;
+  late Future<List<UserProfile>> _profiles;
   String searchString = '';
 
   @override
@@ -35,8 +35,8 @@ class _SearchScreenState extends State<SearchScreen> {
     _inputController.addListener(_updateSearch);
   }
 
-  FutureBuilder<List<ProfileSearch>> _searchList() {
-    return FutureBuilder<List<ProfileSearch>>(
+  FutureBuilder<List<UserProfile>> _searchList() {
+    return FutureBuilder<List<UserProfile>>(
       future: _profiles,
       builder: (context, snapshot) {
         if (snapshot.data == null || snapshot.data!.isEmpty) {
@@ -45,7 +45,7 @@ class _SearchScreenState extends State<SearchScreen> {
           );
         } else if (snapshot.hasData) {
           var resultList = snapshot.data!
-              .where((element) => element.id != supabase.getUser()!.id)
+              .where((element) => element.id != supabase.getCurrentUser()!.id)
               .where((element) => element.name
                   .toLowerCase()
                   .contains(searchString.toLowerCase()))
@@ -61,21 +61,7 @@ class _SearchScreenState extends State<SearchScreen> {
             itemBuilder: (BuildContext context, int index) {
               return ListTile(
                 title: Text(resultList[index].name),
-                trailing: IconButton(
-                    icon: const Icon(Icons.person_add),
-                    onPressed: () async {
-                      try {
-                        await supabase.sendFriendRequest(resultList[index].id);
-                        if (mounted) {
-                          context.showSnackBar(
-                              message:
-                                  'Friend request sent to ${resultList[index].name}');
-                        }
-                      } catch (e) {
-                        print(e);
-                        context.showSnackBar(message: "Unable to send request");
-                      }
-                    }),
+                trailing: AddFriendButton(userId: resultList[index].id),
               );
             },
           );
@@ -116,6 +102,82 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
       ),
       body: _searchList(),
+    );
+  }
+}
+
+class AddFriendButton extends StatefulWidget {
+  const AddFriendButton({
+    super.key,
+    required this.userId,
+  });
+
+  final String userId;
+
+  @override
+  State<AddFriendButton> createState() => _AddFriendButtonState();
+}
+
+class _AddFriendButtonState extends State<AddFriendButton> {
+  late bool _sentRequest;
+
+  @override
+  void initState() {
+    super.initState();
+    _sentRequest = false;
+  }
+
+  _onButtonClick() async {
+    if (_sentRequest) {
+      return;
+    }
+    try {
+      await supabase.sendFriendRequest(widget.userId);
+      setState(() {
+        _sentRequest = true;
+      });
+    } catch (e) {
+      context.showErrorSnackBar(message: 'Failed to send friend request');
+    }
+  }
+
+  Future<bool> _checkIfFriend() async {
+    final currentUserId = supabase.getCurrentUser()!.id;
+    final profile = await supabase.getProfile(currentUserId);
+    return profile.friends!.any((element) => element.id == widget.userId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 100,
+      height: 40,
+      child: FutureBuilder<bool>(
+        future: _checkIfFriend(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            if (snapshot.data!) {
+              return const OutlinedButton(
+                onPressed: null,
+                child: Text('Friends'),
+              );
+            } else {
+              return _sentRequest
+                  ? const OutlinedButton(
+                      onPressed: null,
+                      child: Text('Pending'),
+                    )
+                  : IconButton(
+                      icon: const Icon(Icons.person_add),
+                      onPressed: () => _onButtonClick());
+            }
+          } else {
+            return const Center(
+              child: CircularProgressIndicator.adaptive(),
+            );
+          }
+        },
+      ),
     );
   }
 }

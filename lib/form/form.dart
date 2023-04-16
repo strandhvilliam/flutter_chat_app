@@ -5,7 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/models.dart';
 
-final List<UserProfile> friends = [
+/* final List<UserProfile> friends = [
   UserProfile(
     id: '12341',
     name: 'John Doe2',
@@ -69,7 +69,7 @@ final List<UserProfile> friends = [
     image:
         'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
   ),
-];
+]; */
 
 class FormScreen extends StatefulWidget {
   const FormScreen({super.key});
@@ -152,37 +152,50 @@ class _FriendsListState extends State<FriendsList> {
     });
   }
 
+  final Future<List<UserProfile>> _friends =
+      supabase.getFriendsByUser(supabase.getCurrentUser()!.id);
+
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: ListView.builder(
-        itemCount: friends.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundImage: NetworkImage(friends[index].image),
-            ),
-            title: Text(friends[index].name),
-            trailing: CircleAvatar(
-              backgroundColor: _selectedFriends.contains(friends[index].id)
-                  ? Colors.blue
-                  : Colors.grey,
-              child: IconButton(
-                icon: Icon(
-                  _selectedFriends.contains(friends[index].id)
-                      ? Icons.check
-                      : Icons.add,
-                  color: Colors.white,
+    return FutureBuilder<List<UserProfile>>(
+      future: _friends,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Expanded(
+              child: Center(child: CircularProgressIndicator()));
+        }
+        return Expanded(
+          child: ListView.builder(
+            itemCount: snapshot.data!.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: NetworkImage(snapshot.data![index].image),
                 ),
-                onPressed: () {
-                  widget.onAddToRoom(friends[index].id);
-                  _updateIcon(friends[index].id);
-                },
-              ),
-            ),
-          );
-        },
-      ),
+                title: Text(snapshot.data![index].name),
+                trailing: CircleAvatar(
+                  backgroundColor:
+                      _selectedFriends.contains(snapshot.data![index].id)
+                          ? Colors.blue
+                          : Colors.grey,
+                  child: IconButton(
+                    icon: Icon(
+                      _selectedFriends.contains(snapshot.data![index].id)
+                          ? Icons.check
+                          : Icons.add,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      widget.onAddToRoom(snapshot.data![index].id);
+                      _updateIcon(snapshot.data![index].id);
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
