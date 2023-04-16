@@ -22,7 +22,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (_redirectCalled || !mounted) return;
 
     _redirectCalled = true;
-    final session = supabase.client.auth.currentSession;
+    final session = supabase.getSession();
     if (session == null) {
       context.go('/sign-up');
     } else {

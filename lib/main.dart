@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/auth/sign_in.dart';
 import 'package:flutter_chat_app/chats/chats.dart';
 import 'package:flutter_chat_app/form/form.dart';
+import 'package:flutter_chat_app/form/search.dart';
 import 'package:flutter_chat_app/profile/profile.dart';
 import 'package:flutter_chat_app/services/supabase.dart';
 import 'package:flutter_chat_app/auth/sign_up.dart';
@@ -71,6 +72,11 @@ final GoRouter _router = GoRouter(
       path: '/new',
       builder: (context, state) => const FormScreen(),
     ),
+    GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
+      path: '/search',
+      builder: (context, state) => const SearchScreen(),
+    )
 
     /* GoRoute(
       path: '/chat/:id',

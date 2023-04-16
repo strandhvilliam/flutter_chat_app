@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/services/supabase.dart' as supabase;
 import 'package:flutter_chat_app/shared/extensions.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'auth_input.dart';
+import 'package:flutter_chat_app/auth/auth_input.dart';
 import 'package:go_router/go_router.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -74,7 +73,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   if (value!.isEmpty) {
                     return 'Username can not be empty';
                   }
-                  if (value!.length < 4) {
+                  if (value.length < 4) {
                     return 'Username must be at least 4 characters long';
                   }
                   return null;

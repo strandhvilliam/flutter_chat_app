@@ -73,3 +73,16 @@ class Message {
     this.room,
   }) : createdAt = createdAt ?? DateTime.now();
 }
+
+class ProfileSearch {
+  final String id;
+  final String name;
+  final String image;
+
+  ProfileSearch({
+    this.id = 'id',
+    this.name = 'name',
+    this.image =
+        'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+  });
+}

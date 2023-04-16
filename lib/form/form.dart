@@ -7,63 +7,63 @@ import '../services/models.dart';
 
 final List<UserProfile> friends = [
   UserProfile(
-    id: '1234',
+    id: '12341',
     name: 'John Doe2',
     email: '',
     image:
         'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
   ),
   UserProfile(
-    id: '1234',
+    id: '12342',
     name: 'John Doe3',
     email: '',
     image:
         'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
   ),
   UserProfile(
-    id: '1234',
+    id: '12343',
     name: 'John Doe4',
     email: '',
     image:
         'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
   ),
   UserProfile(
-    id: '1234',
+    id: '12344',
     name: 'John Doe5',
     email: '',
     image:
         'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
   ),
   UserProfile(
-    id: '1234',
+    id: '12345',
     name: 'John Doe6',
     email: '',
     image:
         'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
   ),
   UserProfile(
-    id: '1234',
+    id: '12346',
     name: 'John Doe6',
     email: '',
     image:
         'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
   ),
   UserProfile(
-    id: '1234',
+    id: '12347',
     name: 'John Doe6',
     email: '',
     image:
         'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
   ),
   UserProfile(
-    id: '1234',
+    id: '12348',
     name: 'John Doe6',
     email: '',
     image:
         'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
   ),
   UserProfile(
-    id: '1234',
+    id: '12349',
     name: 'John Doe6',
     email: '',
     image:
@@ -81,6 +81,10 @@ class FormScreen extends StatefulWidget {
 class _FormScreenState extends State<FormScreen> {
   final _formKey = GlobalKey<FormState>();
 
+  onAddToRoom(String id) {
+    print('add to room');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,23 +93,36 @@ class _FormScreenState extends State<FormScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/chats'),
         ),
-        title: const Text('Form'),
+        title: const Text('Create New Room'),
       ),
-      body: const Padding(
-        padding: EdgeInsets.all(20.0),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            SizedBox(height: 10),
-            Text('Chat room',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            SizedBox(height: 10),
-            NewRoomForm(),
-            SizedBox(height: 10),
-            Text('Friends',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            SizedBox(height: 10),
-            FriendsList(),
+            const SizedBox(height: 10),
+            const NewRoomForm(),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Text('Friends',
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const Spacer(),
+                ElevatedButton(
+                  onPressed: () {
+                    context.push('/search');
+                  },
+                  child: const Text('Add Friend'),
+                ),
+              ],
+            ),
+            const Divider(
+              height: 10,
+              thickness: 1,
+              color: Colors.grey,
+            ),
+            FriendsList(onAddToRoom: onAddToRoom),
           ],
         ),
       ),
@@ -113,13 +130,26 @@ class _FormScreenState extends State<FormScreen> {
   }
 }
 
-class FriendsList extends StatelessWidget {
+class FriendsList extends StatefulWidget {
+  final Function(String id) onAddToRoom;
   const FriendsList({
     super.key,
+    required this.onAddToRoom,
   });
 
-  _onProfilePressed() {
-    print('Profile pressed');
+  @override
+  State<FriendsList> createState() => _FriendsListState();
+}
+
+class _FriendsListState extends State<FriendsList> {
+  final List<String> _selectedFriends = [];
+
+  void _updateIcon(String id) {
+    setState(() {
+      _selectedFriends.contains(id)
+          ? _selectedFriends.remove(id)
+          : _selectedFriends.add(id);
+    });
   }
 
   @override
@@ -134,13 +164,20 @@ class FriendsList extends StatelessWidget {
             ),
             title: Text(friends[index].name),
             trailing: CircleAvatar(
-              backgroundColor: Colors.blue,
+              backgroundColor: _selectedFriends.contains(friends[index].id)
+                  ? Colors.blue
+                  : Colors.grey,
               child: IconButton(
-                icon: const Icon(
-                  Icons.chat_bubble_outline,
+                icon: Icon(
+                  _selectedFriends.contains(friends[index].id)
+                      ? Icons.check
+                      : Icons.add,
                   color: Colors.white,
                 ),
-                onPressed: _onProfilePressed,
+                onPressed: () {
+                  widget.onAddToRoom(friends[index].id);
+                  _updateIcon(friends[index].id);
+                },
               ),
             ),
           );
@@ -180,7 +217,7 @@ class _NewRoomFormState extends State<NewRoomForm> {
           TextFormField(
               controller: _roomNameController,
               decoration: const InputDecoration(
-                filled: true,
+                filled: false,
                 hintText: 'Enter a title...',
                 labelText: 'Room Name',
               ),
