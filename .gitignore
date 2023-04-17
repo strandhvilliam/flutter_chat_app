@@ -45,3 +45,7 @@ app.*.map.json
 
 # Environment variables
 *.env
+
+# Desktop related
+/windows
+/macos
