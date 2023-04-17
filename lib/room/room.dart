@@ -25,6 +25,10 @@ class _RoomScreenState extends State<RoomScreen> {
 
   final _stream = supabase.getChatStream();
 
+  _sendMessage(String message) {
+    supabase.sendMessage(widget.roomId!, message);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,10 +78,10 @@ class _RoomScreenState extends State<RoomScreen> {
                   } else if (snapshot.hasError) {
                     return Text(snapshot.error.toString());
                   }
-                  return const Text('Loading...');
+                  return const Center(child: CircularProgressIndicator());
                 }),
           ),
-          const MessageBar(),
+          MessageBar(onSend: _sendMessage),
         ],
       ),
     );
@@ -92,12 +96,16 @@ class ChatBubble extends StatelessWidget {
 
   final Message message;
 
+  bool _isOwnMessage(String userId) {
+    return supabase.getCurrentUser()!.id == userId;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListTile(
       title: Flex(
         direction: Axis.horizontal,
-        mainAxisAlignment: message.id == supabase.getCurrentUser()!.id
+        mainAxisAlignment: _isOwnMessage(message.senderId!)
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         children: [
@@ -107,20 +115,27 @@ class ChatBubble extends StatelessWidget {
             ),
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.grey[200],
+              color: _isOwnMessage(message.senderId!)
+                  ? Colors.teal
+                  : Colors.grey[200],
               border: Border.all(color: Colors.grey[300]!),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               message.content,
               softWrap: true,
+              style: TextStyle(
+                color: _isOwnMessage(message.senderId!)
+                    ? Colors.white
+                    : Colors.black,
+              ),
             ),
           ),
         ],
       ),
       subtitle: Flex(
         direction: Axis.horizontal,
-        mainAxisAlignment: message.id == supabase.getCurrentUser()!.id
+        mainAxisAlignment: _isOwnMessage(message.senderId!)
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         children: [

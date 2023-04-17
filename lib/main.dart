@@ -31,6 +31,8 @@ Future<void> main() async {
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
+final PageStorageBucket _bucket = PageStorageBucket();
+
 final GoRouter _router = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/',
@@ -81,7 +83,11 @@ final GoRouter _router = GoRouter(
     GoRoute(
       parentNavigatorKey: _rootNavigatorKey,
       path: '/room/:roomId',
-      builder: (context, state) => RoomScreen(roomId: state.params['roomId']),
+      builder: (context, state) => PageStorage(
+        bucket: _bucket,
+        key: PageStorageKey<String>(state.params['roomId']!),
+        child: RoomScreen(roomId: state.params['roomId']),
+      ),
     ),
 
     /* GoRoute(

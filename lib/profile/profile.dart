@@ -4,41 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/services/models.dart';
 import 'package:flutter_chat_app/services/supabase.dart' as supabase;
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-/* class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            TextButton(
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(Colors.red),
-              ),
-              onPressed: () {
-                SupabaseService.signOut();
-              },
-              child: const Text('Sign out'),
-            ),
-            TextButton(
-              onPressed: () {
-                SupabaseService.signIn('test@test.com', '123456');
-              },
-              child: const Text('Sign In'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-} */
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -49,7 +14,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _authChecked = false;
-  UserProfile _profileData = UserProfile();
+  UserProfile? _profileData;
 
   @override
   void didChangeDependencies() {
@@ -58,15 +23,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   _getProfileData() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    if (prefs.containsKey('profile')) {
-      setState(() {
-        _profileData = UserProfile.fromJson(prefs.getString('profile')!);
-      });
-
-      print(_profileData);
-    }
+    final String userId = supabase.getCurrentUser()!.id;
+    final UserProfile profile = await supabase.getProfile(userId);
+    setState(() {
+      _profileData = profile;
+    });
   }
 
   @override
@@ -87,19 +48,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 100),
               CircleAvatar(
                 radius: 50,
-                backgroundImage: NetworkImage(_profileData.image),
+                backgroundImage: NetworkImage(_profileData?.image ??
+                    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'),
               ),
               const SizedBox(height: 20),
               Text(
-                _profileData.name,
+                _profileData?.name ?? '...',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 40),
               ElevatedButton(
-                onPressed: () async {
-                  final String userId = supabase.getCurrentUser()!.id;
-                  final UserProfile profile = await supabase.getProfile(userId);
-                },
+                onPressed: () async {},
                 style: ButtonStyle(
                   minimumSize: MaterialStateProperty.all(
                     const Size(200, 50),

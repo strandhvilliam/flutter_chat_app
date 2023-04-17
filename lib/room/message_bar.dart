@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
 
 class MessageBar extends StatefulWidget {
-  const MessageBar({super.key});
+  const MessageBar({super.key, required this.onSend});
+
+  final Function(String message) onSend;
 
   @override
   State<MessageBar> createState() => _MessageBarState();
 }
 
 class _MessageBarState extends State<MessageBar> {
+  final TextEditingController _messageController = TextEditingController();
+
+  _sendMessage() {
+    final message = _messageController.text;
+    if (message.isNotEmpty) {
+      _messageController.clear();
+      widget.onSend(message);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -28,9 +40,10 @@ class _MessageBarState extends State<MessageBar> {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: TextField(
-                  decoration: InputDecoration(
+                  controller: _messageController,
+                  decoration: const InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
                     hintText: 'Type a message',
@@ -47,10 +60,12 @@ class _MessageBarState extends State<MessageBar> {
                 width: 10.0,
               ),
               CircleAvatar(
-                backgroundColor: Colors.lightBlue,
+                backgroundColor: Colors.teal,
                 child: IconButton(
                   color: Colors.white,
-                  onPressed: () {},
+                  onPressed: () {
+                    _sendMessage();
+                  },
                   icon: const Icon(Icons.send_rounded),
                 ),
               ),

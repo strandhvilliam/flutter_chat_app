@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/services/models.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final _client = Supabase.instance.client;
@@ -60,9 +59,6 @@ Future<void> signUp(String email, String password, String username) async {
   };
 
   final jsonText = jsonEncode(profileData);
-
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setString('profile', jsonText);
 }
 
 Future<void> signIn(String email, String password) async {
@@ -88,16 +84,10 @@ Future<void> signIn(String email, String password) async {
   };
 
   final jsonText = jsonEncode(profileData);
-
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setString('profile', jsonText);
 }
 
 Future<void> signOut() async {
   await _client.auth.signOut();
-
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.remove('profile');
 }
 
 Future<List<ChatRoom>> getChatRooms() async {
@@ -313,4 +303,15 @@ dynamic getChatStream() {
   return _client
       .from('message')
       .stream(primaryKey: ['id']).order('created_at', ascending: false);
+}
+
+sendMessage(String roomId, String message) async {
+  final currentUserId = _client.auth.currentUser!.id;
+
+  await _client.from('message').insert({
+    'room_id': roomId,
+    'sender_id': currentUserId,
+    'content': message,
+    'created_at': DateTime.now().toIso8601String(),
+  });
 }

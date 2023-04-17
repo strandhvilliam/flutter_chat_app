@@ -26,10 +26,9 @@ class _SignInScreenState extends State<SignInScreen> {
       if (mounted) {
         context.go('/chats');
         context.showSnackBar(message: 'Successfully signed in!');
-      } else {
-        context.showErrorSnackBar(message: 'Failed to sign in!');
       }
     } catch (e) {
+      print(e);
       context.showErrorSnackBar(message: 'Failed to sign in!');
     }
   }
