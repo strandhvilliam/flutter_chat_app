@@ -1,4 +1,5 @@
 # flutter-supabase-chat-app
+(work in progress)
 This is a chat application side project built using Flutter and Supabase as a Backend-as-a-Service (BaaS) provider. Please note that this project is currently in progress and is not yet finished. It is being developed as a learning project to improve my skills in mobile app development and backend services.
 
 
