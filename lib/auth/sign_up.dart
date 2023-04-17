@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/services/supabase.dart' as supabase;
-import 'package:flutter_chat_app/shared/extensions.dart';
+import 'package:flutter_chat_app/shared/utils.dart';
 import 'package:flutter_chat_app/auth/auth_input.dart';
 import 'package:go_router/go_router.dart';
 

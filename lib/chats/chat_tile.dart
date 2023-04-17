@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/services/supabase.dart';
+import 'package:go_router/go_router.dart';
 
 import '../services/models.dart';
 
@@ -20,7 +21,7 @@ class ChatTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        //SupabaseService.client.fetchRooms();
+        context.push('/room/${chatRoom.id}');
       },
       behavior: HitTestBehavior.opaque,
       child: Container(

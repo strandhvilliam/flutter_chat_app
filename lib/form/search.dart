@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/services/models.dart';
 import 'package:flutter_chat_app/services/supabase.dart' as supabase;
-import 'package:flutter_chat_app/shared/extensions.dart';
+import 'package:flutter_chat_app/shared/utils.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});

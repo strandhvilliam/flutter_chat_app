@@ -60,16 +60,16 @@ class ChatRoom {
 
 class Message {
   final String id;
-  final String message;
+  final String content;
   final DateTime createdAt;
-  final UserProfile? sender;
-  final ChatRoom? room;
+  final String? senderId;
+  final String? roomId;
 
   Message({
     this.id = 'id',
-    this.message = 'Message',
+    this.content = 'Message',
     DateTime? createdAt,
-    this.sender,
-    this.room,
+    this.senderId,
+    this.roomId,
   }) : createdAt = createdAt ?? DateTime.now();
 }

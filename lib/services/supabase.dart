@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -152,6 +153,46 @@ Future<List<ChatRoom>> getChatRooms() async {
   return chatRooms;
 }
 
+Future<ChatRoom> getSingleChatRoom(String roomId) async {
+  final List<dynamic> roomRef =
+      await _client.from('chat_room').select().eq('id', roomId);
+
+  final List<dynamic> roomMembersRef =
+      await _client.from('member').select().eq('room_id', roomId);
+
+  final List<String> userIds = roomMembersRef.map((data) {
+    return data['user_id'] as String;
+  }).toList();
+
+  final List<dynamic> usersRef =
+      await _client.from('user_profile').select().in_('id', userIds);
+
+  final List<UserProfile> users = usersRef.map((data) {
+    return UserProfile(
+      id: data['id'] as String,
+      name: data['name'] as String,
+      createdAt: DateTime.parse(data['created_at'] as String),
+      email: data['email'] as String,
+      image: data['image'] as String? ??
+          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+    );
+  }).toList();
+
+  final ChatRoom chatRoom = ChatRoom(
+    id: roomRef[0]['id'],
+    name: roomRef[0]['name'],
+    createdAt: DateTime.parse(roomRef[0]['created_at']),
+    members: users.where((user) {
+      return roomMembersRef.any((member) {
+        return member['room_id'] == roomRef[0]['id'] as String &&
+            member['user_id'] as String == user.id;
+      });
+    }).toList(),
+  );
+
+  return chatRoom;
+}
+
 Future<void> createChatRoom(String name, List<UserProfile> members) async {
   final currentUserId = _client.auth.currentUser!.id;
 
@@ -266,4 +307,10 @@ Future<List<UserProfile>> getFriendsByUser(String userId) async {
   ];
 
   return friends;
+}
+
+dynamic getChatStream() {
+  return _client
+      .from('message')
+      .stream(primaryKey: ['id']).order('created_at', ascending: false);
 }
